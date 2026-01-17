@@ -1,0 +1,44 @@
+
+name: Build APK
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kódbázis lehúzása
+        uses: actions/checkout@v4
+
+      - name: JDK 17 telepítése
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Gradle cache
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Debug APK build
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean assembleDebug
+
+      - name: APK-k összegyűjtése dinamikusan
+        run: |
+          mkdir -p apks
+          # Keres minden debug APK-t, akármi a modul neve (app, mobile, stb.)
+          find . -type f -path "*/outputs/apk/*/debug/*.apk" -exec cp {} apks/ \; || true
+          echo "Talált APK-k:"
+          ls -l apks || true
+
+      - name: APK feltöltése artefaktként
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: WIFIbuhera-debug-apk
+          path: apks/*.apk
+          if-no-files-found: warn
