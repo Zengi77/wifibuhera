@@ -1,0 +1,32 @@
+
+name: Build APK
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kódbázis lehúzása
+        uses: actions/checkout@v4
+
+      - name: JDK 17 telepítése
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Gradle cache
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Debug APK build
+        run: ./gradlew assembleDebug
+
+      - name: APK feltöltése artefaktként
+        uses: actions/upload-artifact@v4
+        with:
+          name: WIFIbuhera-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
